@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Govind's Bot</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0056b3; /* Audisankara blue */
+            --primary-light: #1a73e8;
+            --secondary: #003366; /* Darker blue */
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --danger: #d9534f;
+            --success: #28a745;
+            --border-radius: 12px;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f1f1f1;
+        }
+        
+        .chat {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 800px;
+            margin: auto;
+            box-shadow: var(--shadow);
+            background-color: #ffffff;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+        
+        .chat-header-info {
+            flex: 1;
+        }
+        
+        .chat-header-info h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .chat-header-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .chat-body {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message-container {
+            display: flex;
+            gap: 10px;
+            max-width: 90%;
+        }
+        
+        .message-container.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-container.bot {
+            align-self: flex-start;
+        }
+        
+        .user-avatar, .bot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+        
+        .user-avatar {
+            border: 2px solid var(--primary);
+        }
+        
+        .bot-avatar {
+            border: 2px solid var(--success);
+        }
+        
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .message-sender {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .chat-message {
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        
+        .chat-message.user {
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+        
+        .chat-message.bot {
+            background-color: var(--light-gray);
+            color: var(--dark);
+            border-bottom-left-radius: 0;
+        }
+        
+        .chat-message.bot pre {
+            margin: 0;
+            font-family: "Courier New", Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: rgba(0,0,0,0.05);
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 3px;
+        }
+        
+        .user-message .message-time {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: right;
+        }
+        
+        .bot-message .message-time {
+            color: var(--gray);
+        }
+        
+        .chat-footer {
+            padding: 15px;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .chat-footer input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 50px;
+            outline: none;
+            transition: var(--transition);
+        }
+        
+        .chat-footer input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+        }
+        
+        .chat-footer button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--gray);
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d1d1;
+            transform: scale(1.05);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        /* Voice recognition status */
+        .voice-status {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            display: none;
+            z-index: 1000;
+        }
+        
+        /* Notification card */
+        .notification-card {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            max-width: 300px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification-card.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification-card i {
+            font-size: 1.5rem;
+        }
+        
+        .notification-card.success i {
+            color: var(--success);
+        }
+        
+        .notification-card.error i {
+            color: var(--danger);
+        }
+        
+        .notification-card.info i {
+            color: var(--primary);
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 86, 179, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0); }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .chat {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message-container {
+                max-width: 95%;
+            }
+            
+            .chat-footer button {
+                width: 42px;
+                height: 42px;
+            }
+            
+            .notification-card {
+                bottom: 10px;
+                right: 10px;
+                max-width: calc(100% - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="chat">
+    <div class="chat-header">
+        <img src="{{ url_for('static', filename='logo1.jpg') }}" alt="Audisankara Logo" class="bot-avatar">
+ <div class="chat-header-info">
+            <h5>Govind's Bot</h5>
+            <p>I am Govind Jadapalli assistant</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="clear-chat" title="Clear Chat">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </div>
+    <div class="chat-body" id="chat-body">
+        <!-- Welcome message -->
+        <div class="message-container bot">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Audisankara Logo" class="bot-avatar">
+            <div class="message-content">
+                <span class="message-sender">Govind's Bot</span>
+                <div class="chat-message bot">
+                    Welcome.! I am created by <b>Govind Jadapalli<b>. I'm here to help. How can I assist you today?
+                </div>
+                <span class="message-time"><?php echo date('H:i'); ?></span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="voice-status" id="voiceStatus">
+        <i class="fas fa-microphone"></i> Listening...
+    </div>
+    
+    <div class="chat-footer">
+        <input type="text" class="form-control" id="message-input" placeholder="Type your message here..." autocomplete="off">
+        <button class="btn btn-primary" id="send-button" title="Send">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+        <button class="btn btn-secondary" id="audio-button" title="Read Aloud">
+            <i class="fas fa-volume-up"></i>
+        </button>
+        <button class="btn btn-secondary" id="voice-button" title="Voice Input">
+            <i class="fas fa-microphone"></i>
+        </button>
+        <button class="btn btn-danger" id="stop-button" title="Stop">
+            <i class="fas fa-stop"></i>
+        </button>
+        <button class="btn btn-secondary" id="copy-button" title="Copy">
+            <i class="fas fa-copy"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Notification Card -->
+<div class="notification-card" id="notificationCard">
+    <i class="fas fa-check-circle"></i>
+    <div class="notification-content">
+        <div class="notification-title" id="notificationTitle">Success</div>
+        <div class="notification-message" id="notificationMessage">Operation completed successfully</div>
+    </div>
+</div>
+
+<!-- jQuery and Bootstrap JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+        let lastBotResponse = ""; // Store the last bot response
+        let recognition; // Speech recognition instance
+        let isSpeaking = false; // Flag to check if the bot is speaking
+
+        // Show notification card
+        function showNotification(type, title, message) {
+            const card = $('#notificationCard');
+            const icon = card.find('i');
+            const titleEl = $('#notificationTitle');
+            const messageEl = $('#notificationMessage');
+            
+            // Remove all classes and add the base class back
+            card.removeClass('success error info').addClass(type);
+            
+            // Set icon based on type
+            icon.removeClass().addClass('fas');
+            if (type === 'success') {
+                icon.addClass('fa-check-circle');
+            } else if (type === 'error') {
+                icon.addClass('fa-exclamation-circle');
+            } else {
+                icon.addClass('fa-info-circle');
+            }
+            
+            titleEl.text(title);
+            messageEl.text(message);
+            
+            card.addClass('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                card.removeClass('show');
+            }, 3000);
+        }
+
+        // Check if SpeechRecognition is supported
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function () {
+                $('#voice-button').addClass('listening');
+                $('#voiceStatus').fadeIn();
+            };
+
+            recognition.onend = function () {
+                $('#voice-button').removeClass('listening');
+                $('#voiceStatus').fadeOut();
+            };
+
+            recognition.onresult = function (event) {
+                const userMessage = event.results[0][0].transcript;
+                $('#message-input').val(userMessage);
+                sendMessage();
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Voice recognition error:', event.error);
+                showNotification('error', 'Voice Error', "Sorry, I didn't catch that. Could you try again?");
+            };
+        } else {
+            $('#voice-button').prop('disabled', true).attr('title', 'Voice input not supported');
+            showNotification('info', 'Feature Unavailable', 'Voice input is not supported in your browser');
+        }
+
+        // Voice button click handler
+        $('#voice-button').click(function () {
+            if (!isSpeaking && recognition) {
+                recognition.start();
+            }
+        });
+
+        // Send button click handler
+        $('#send-button').click(function () {
+            sendMessage();
+        });
+
+        // Enter key press handler
+        $('#message-input').keypress(function (e) {
+            if (e.which === 13) {
+                sendMessage();
+            }
+        });
+
+        // Audio button click handler
+        $('#audio-button').click(function () {
+            if (lastBotResponse) {
+                const speech = new SpeechSynthesisUtterance(lastBotResponse);
+                speech.onstart = function() {
+                    isSpeaking = true;
+                    $('#audio-button').html('<i class="fas fa-pause"></i>');
+                };
+                speech.onend = function() {
+                    isSpeaking = false;
+                    $('#audio-button').html('<i class="fas fa-volume-up"></i>');
+                    if (recognition) recognition.start();
+                };
+                window.speechSynthesis.speak(speech);
+            } else {
+                showNotification('info', 'No Content', 'No response to read aloud');
+            }
+        });
+
+        // Stop button click handler
+        $('#stop-button').click(function () {
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                $('#audio-button').html('<i class="fas fa-volume-up"></i>');
+                showNotification('info', 'Stopped', 'Speech playback stopped');
+            }
+            if (recognition && recognition.abort) {
+                recognition.abort();
+            }
+        });
+
+        // Copy button click handler
+        $('#copy-button').click(function () {
+            if (lastBotResponse) {
+                navigator.clipboard.writeText(lastBotResponse).then(function () {
+                    // Show notification instead of alert
+                    showNotification('success', 'Copied!', 'Response copied to clipboard');
+                    const copyBtn = $('#copy-button');
+                    copyBtn.html('<i class="fas fa-check"></i>');
+                    setTimeout(() => {
+                        copyBtn.html('<i class="fas fa-copy"></i>');
+                    }, 2000);
+                }).catch(function (err) {
+                    showNotification('error', 'Error', 'Failed to copy text');
+                    console.error('Could not copy text: ', err);
+                });
+            } else {
+                showNotification('info', 'No Content', 'No response to copy');
+            }
+        });
+
+        // Clear chat button
+        $('#clear-chat').click(function() {
+            // Create confirmation card
+            const confirmCard = $(`
+                <div class="message-container bot">
+                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Audisankara Logo" class="bot-avatar">
+                    <div class="message-content">
+                        <span class="message-sender">Govind's Bot</span>
+                        <div class="chat-message bot">
+                            <p>Are you sure you want to clear the chat history?</p>
+                            <div class="d-flex gap-2 mt-2">
+                                <button class="btn btn-sm btn-danger" id="confirm-clear">Yes, Clear</button>
+                                <button class="btn btn-sm btn-secondary" id="cancel-clear">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            
+            $('#chat-body').append(confirmCard);
+            scrollToBottom();
+            
+            $('#confirm-clear').click(function() {
+                $('#chat-body').html(`
+                    <div class="message-container bot">
+                        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Audisankara Logo" class="bot-avatar">
+                        <div class="message-content">
+                            <span class="message-sender">Govind's Bot</span>
+                            <div class="chat-message bot">
+                               Welcome.! I am created by <b>Govind Jadapalli<b>. I'm here to help. How can I assist you today?
+                            </div>
+                            <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                    </div>
+                `);
+                lastBotResponse = "";
+                showNotification('success', 'Chat Cleared', 'Conversation history has been cleared');
+            });
+            
+            $('#cancel-clear').click(function() {
+                confirmCard.remove();
+            });
+        });
+
+        function sendMessage() {
+            var userMessage = $('#message-input').val().trim();
+
+            if (userMessage) {
+                // Add user message to chat
+                appendMessage('user', userMessage, 'You');
+                $('#message-input').val("");
+
+                // Scroll to the latest message
+                scrollToBottom();
+
+                // Make the AJAX call
+                $.ajax({
+                    url: '/chat',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ "message": userMessage }),
+                    success: function (response) {
+                        lastBotResponse = response.response; // Update the last bot response
+                        appendMessage('bot', lastBotResponse, 'Govinds Bot');
+                        // Automatically play bot's response as speech
+                        const botSpeech = new SpeechSynthesisUtterance(lastBotResponse);
+                        botSpeech.onstart = function() {
+                            isSpeaking = true;
+                            $('#audio-button').html('<i class="fas fa-pause"></i>');
+                        };
+                        botSpeech.onend = function() {
+                            isSpeaking = false;
+                            $('#audio-button').html('<i class="fas fa-volume-up"></i>');
+                            if (recognition) recognition.start();
+                        };
+                        window.speechSynthesis.speak(botSpeech);
+                        scrollToBottom();
+                    },
+                    error: function (xhr, status, error) {
+                        lastBotResponse = 'Sorry, there was an error processing your request.';
+                        appendMessage('bot', lastBotResponse, 'Govinds Bot');
+                        console.error("Error: " + error);
+                        showNotification('error', 'Error', 'Failed to process your request');
+                    }
+                });
+            }
+        }
+
+        function appendMessage(sender, message, senderName) {
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const messageHtml = `
+                <div class="message-container ${sender}">
+                    <img src="${sender === 'user' ? 
+                        'https://ui-avatars.com/api/?name=Student&background=random' : 
+                        '/static/logo.jpg'}" 
+                        alt="${senderName}" class="${sender}-avatar">
+                    <div class="message-content">
+                        <span class="message-sender">${senderName}</span>
+                        <div class="chat-message ${sender}">
+                            ${sender === 'bot' && message.includes('\n') ? '<pre>' + message + '</pre>' : message}
+                        </div>
+                        <span class="message-time">${time}</span>
+                    </div>
+                </div>
+            `;
+            
+            $('#chat-body').append(messageHtml);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            $('#chat-body').scrollTop($('#chat-body')[0].scrollHeight);
+        }
+    });
+</script>
+</body>
+</html>
