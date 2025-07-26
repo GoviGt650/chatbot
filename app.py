@@ -6,7 +6,7 @@ import os
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# Restrict bot using a system-level prompt
+# Define Gemini model with domain-restricted system prompt
 model = genai.GenerativeModel(
     model_name="gemini-pro",
     system_instruction="""
@@ -19,12 +19,12 @@ Never respond to questions outside the healthcare domain.
 """
 )
 
-# Start chat session
+# Start a chat session
 chat = model.start_chat(history=[])
 
 app = Flask(__name__)
 
-# Function to detect healthcare-related intent
+# Keyword filter to ensure queries are related to healthcare
 def is_healthcare_related(query):
     keywords = [
         'symptom', 'medicine', 'disease', 'doctor', 'hospital',
@@ -40,20 +40,25 @@ def index():
 @app.route('/chat', methods=['POST'])
 def chat_response():
     user_input = request.json.get('message')
-    
+
     if not user_input:
         return jsonify({"error": "No message provided"}), 400
 
     if not is_healthcare_related(user_input):
-        return jsonify({"response": "I'm sorry, but I can only help with healthcare-related queries."})
+        return jsonify({
+            "response": "I'm sorry, but I can only help with healthcare-related queries."
+        })
 
     try:
         response = chat.send_message(user_input)
         return jsonify({"response": response.text})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # 🔥 Print the actual Gemini API error for debugging (shows up in Render logs)
+        print("❌ Gemini API Error:", e)
+        return jsonify({
+            "response": "Sorry, there was an error processing your request."
+        }), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Render provides the PORT env variable
+    port = int(os.environ.get('PORT', 5000))  # Required for Render
     app.run(host='0.0.0.0', port=port)
-
